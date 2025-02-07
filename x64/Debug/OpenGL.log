@@ -1,8 +1,10 @@
-﻿  test.cpp
+﻿  glad.c
+  test.cpp
 C:\Users\celes\Desktop\Info\CG\OpenGL\includes\myHeaders\shader.h(65,40): warning C4101: "geometry": Unreferenzierte lokale Variable
   (Quelldatei „src/test.cpp“ wird kompiliert)
   
-C:\Users\celes\Desktop\Info\CG\OpenGL\src\test.cpp(318,25): warning C4267: "Initialisierung": Konvertierung von "size_t" nach "unsigned int", Datenverlust möglich
-C:\Users\celes\Desktop\Info\CG\OpenGL\src\test.cpp(406,50): warning C4267: "Argument": Konvertierung von "size_t" nach "GLsizei", Datenverlust möglich
-C:\Users\celes\Desktop\Info\CG\OpenGL\src\test.cpp(594,17): warning C4244: "Initialisierung": Konvertierung von "double" in "float", möglicher Datenverlust
-  OpenGL.vcxproj -> C:\Users\celes\Desktop\Info\CG\OpenGL\x64\Debug\OpenGL.exe
+C:\Users\celes\Desktop\Info\CG\NewOpengl\cg_project\src\test.cpp(318,25): warning C4267: "Initialisierung": Konvertierung von "size_t" nach "unsigned int", Datenverlust möglich
+C:\Users\celes\Desktop\Info\CG\NewOpengl\cg_project\src\test.cpp(406,50): warning C4267: "Argument": Konvertierung von "size_t" nach "GLsizei", Datenverlust möglich
+C:\Users\celes\Desktop\Info\CG\NewOpengl\cg_project\src\test.cpp(594,17): warning C4244: "Initialisierung": Konvertierung von "double" in "float", möglicher Datenverlust
+  LINK : C:\Users\celes\Desktop\Info\CG\NewOpengl\cg_project\x64\Debug\OpenGL.exe wurde nicht gefunden oder beim letzten inkrementellen Linkvorgang nicht erstellt; vollständiger Link wird durchgeführt.
+  OpenGL.vcxproj -> C:\Users\celes\Desktop\Info\CG\NewOpengl\cg_project\x64\Debug\OpenGL.exe
