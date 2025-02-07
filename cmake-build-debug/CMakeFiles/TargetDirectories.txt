@@ -1,0 +1,3 @@
+/Users/paul/paul_data/projects_cs/cg_project/cmake-build-debug/CMakeFiles/computer_graphik_projekt.dir
+/Users/paul/paul_data/projects_cs/cg_project/cmake-build-debug/CMakeFiles/edit_cache.dir
+/Users/paul/paul_data/projects_cs/cg_project/cmake-build-debug/CMakeFiles/rebuild_cache.dir
