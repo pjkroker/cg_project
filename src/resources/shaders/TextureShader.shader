@@ -105,7 +105,10 @@ void main()
     // Spotlight (optional)
     // result += CalcSpotLight(spotLight, norm, FragPos, viewDir);
 
-    FragColor = vec4(result, 1.0);
+    vec4 texColor = texture(texture_uniform, TexCoords);
+    FragColor = vec4(result, texColor.a);  // Result for lighting, texColor.a for alpha transparency
+
+    //FragColor = vec4(result, 1.0);
 }
 
 // Directional light calculation

@@ -151,12 +151,13 @@ glm::vec3 pointLightPositions[] = {
     glm::vec3(-6.26907, 3.13895, 25.4411),
     glm::vec3(30.0f,  1.6f, 3.0f)
 };
-const unsigned int NUM_PLATFORMS = 4;
+const unsigned int NUM_PLATFORMS = 5;
 glm::vec3 platformPositions[] = {
     start_pos - glm::vec3(0.0f,2.0f,0.0f),
     start_pos - glm::vec3(0.0f,2.0f,-8.0f),
     start_pos - glm::vec3(0.0f,2.0f,-16.0f),
     start_pos - glm::vec3(10.0f,2.0f,-16.0f),
+    start_pos - glm::vec3(-10.0f,2.0f,-16.0f)
 };
 
 glm::vec3 platformScales[] = {
@@ -164,6 +165,7 @@ glm::vec3 platformScales[] = {
     glm::vec3(1.5f, 0.1f, 2.0f),
     glm::vec3(1.0f, 0.1f, 1.0f),
     glm::vec3(4.0f, 0.1f, 10.0f),
+    glm::vec3(8.0f, 0.1f, 10.0f)
 };
 
 std::vector<glm::vec2> texCoords;
@@ -185,13 +187,13 @@ int main()
     glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
     
 
-#ifdef __APPLE__
-    glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
-#endif
+    #ifdef __APPLE__
+        glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
+    #endif
 
     // glfw window creation
    //-----
-    GLFWwindow* window = glfwCreateWindow(SCR_WIDTH, SCR_HEIGHT, "LearnOpenGL", NULL, NULL);
+    GLFWwindow* window = glfwCreateWindow(SCR_WIDTH, SCR_HEIGHT, "UnserTollesOpenGLProjekt", NULL, NULL);
     if (window == NULL)
     {
         std::cout << "Failed to create GLFW window" << std::endl;
@@ -269,7 +271,7 @@ int main()
 
 
 
-
+    //cube = plattform wo drauf man steht?
     unsigned int VBOPlane,VAOplane, VBOcube,VAOcube;
     glGenVertexArrays(1, &VAOplane);
     glGenBuffers(1, &VBOPlane);
@@ -289,6 +291,7 @@ int main()
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, IBO);
     glBufferData(GL_ELEMENT_ARRAY_BUFFER, indices.size()*sizeof(unsigned int), indices.data(), GL_STATIC_DRAW);
 
+    //---cube---
     glGenVertexArrays(1, &VAOcube);
     glBindVertexArray(VAOcube);
 
@@ -300,7 +303,7 @@ int main()
     // texture coord attribute
     glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)(3 * sizeof(float)));
     glEnableVertexAttribArray(1);
-
+    //normals
     glVertexAttribPointer(2, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)(5 * sizeof(float)));
     glEnableVertexAttribArray(2);
 
@@ -319,8 +322,8 @@ int main()
     unsigned int lenght = indices.size() * 4;
 
     unsigned int wallTexture;
-
     wallTexture =loadTexture("src/resources/Textures/tiles.jpg");
+
 
     const char* CubMapsdir[6] = {
     "src/resources/Textures/SkyBox/right.jpg",
@@ -330,12 +333,11 @@ int main()
     "src/resources/Textures/SkyBox/front.jpg",
     "src/resources/Textures/SkyBox/back.jpg"
     };
-
-
     unsigned int cubemapTexture = loadCubemap(CubMapsdir);
 
-
-  
+    //---Texture for Platforms---
+    unsigned int platformTexture;
+    platformTexture = loadTexture("src/resources/Textures/awesomeface.png");
 
     // uncomment this call to draw in wireframe polygons.
     //glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
@@ -344,15 +346,13 @@ int main()
 
     CubeMapShader.use();
     CubeMapShader.setInt("CubeMap", 0);
-   // render loop
 
+    // render loop
     glEnable(GL_BLEND);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-    while (!glfwWindowShouldClose(window))
-
-    {
+    while (!glfwWindowShouldClose(window)) {
         // per-frame time logic
-// --------------------
+        // --------------------
         float currentFrame = static_cast<float>(glfwGetTime());
         deltaTime = currentFrame - lastFrame;
         lastFrame = currentFrame;
@@ -433,12 +433,16 @@ int main()
         
         
         }
-        //Plattform
+        //Plattform, only the texture?
+
+        glActiveTexture(GL_TEXTURE0);
+        glBindTexture(GL_TEXTURE_2D, platformTexture); // Or whichever texture you want
+
         for (unsigned int i = 0; i < NUM_PLATFORMS; i++) {
             glm::vec3 quad_pos = platformPositions[i];
             glm::vec3 quad_scale = platformScales[i];
 
-            makeQuad(lightShader, VAOcube, projection, view, lightColor, quad_pos, quad_scale);
+            makeQuad(TextureShader, VAOcube, projection, view, lightColor, quad_pos, quad_scale);
 
         }
         //skbox
@@ -693,7 +697,6 @@ unsigned int loadTexture(char const* path)
 {
     unsigned int textureID;
     glGenTextures(1, &textureID);
-
     int width, height, nrComponents;
     unsigned char* data = stbi_load(path, &width, &height, &nrComponents, 0);
     if (data)
@@ -757,7 +760,7 @@ unsigned int loadCubemap(const char* faces[])
 }
 void makeQuad(Shader lightShader, unsigned int VAOcube, glm::mat4 projection, glm::mat4 view, glm::vec3 lightColor, glm::vec3 pos, glm::vec3 scale) {
     lightShader.use();
-
+    lightShader.setInt("platformTexture", 0);
     glm::mat4 model = glm::mat4(1.0f);
     model = glm::translate(model, pos);
     model = glm::scale(model, scale); // Make it a smaller cube
@@ -767,7 +770,7 @@ void makeQuad(Shader lightShader, unsigned int VAOcube, glm::mat4 projection, gl
     lightShader.setVec3("lightColor", lightColor);
     lightShader.setMat4("model", model);
 
+
     glBindVertexArray(VAOcube);
     glDrawArrays(GL_TRIANGLES, 0, 36);
-
 }
