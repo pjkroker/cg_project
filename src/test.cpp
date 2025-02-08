@@ -166,6 +166,7 @@ glm::vec3 platformScales[] = {
     glm::vec3(4.0f, 0.1f, 10.0f),
 };
 
+std::vector<glm::vec2> texCoords;
 
 std::vector<glm::vec3> vertices;
 std::vector<glm::vec3> normals;
