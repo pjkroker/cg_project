@@ -20,6 +20,8 @@
 
 void makeQuad(Shader lightShader, unsigned int VAOcube, glm::mat4 projection, glm::mat4 view, glm::vec3 lightColor, glm::vec3 pos, glm::vec3 scale);
 
+void drawPlatform(Shader textureShader, unsigned int VAO, glm::mat4 projection, glm::mat4 view, glm::vec3 lightColor, glm::vec3 pos, glm::vec3 scale);
+
 void framebuffer_size_callback(GLFWwindow* window, int width, int height);
 void mouse_callback(GLFWwindow* window, double xpos, double ypos);
 void scroll_callback(GLFWwindow* window, double xoffset, double yoffset);
@@ -99,7 +101,7 @@ float skyboxVertices[] = {
 
 
 float cubeVertices[] = {
-    //  vertices             TexCoord      Normals  
+    //  vertices             TexCoord      Normals
         -0.5f, -0.5f, -0.5f,  1.0f, 0.0f,  0.0f,  0.0f, -1.0f,
          0.5f, -0.5f, -0.5f,  1.0f, 1.0f,  0.0f,  0.0f, -1.0f,
          0.5f,  0.5f, -0.5f,  0.0f, 1.0f,  0.0f,  0.0f, -1.0f,
@@ -143,6 +145,45 @@ float cubeVertices[] = {
         -0.5f,  0.5f, -0.5f,  0.0f, 1.0f,  0.0f,  1.0f,  0.0f
 
 };
+
+
+const unsigned int NEW_NUM_PLATFORMS = 5;
+float scale = 1.0f;
+float newPlatformVertices[] = {
+    // Positions       // Texture Coords  // Normals
+    -0.5f, -0.5f, 0.0f,  0.0f, 0.0f,  0.0f,  0.0f,  1.0f,  // Bottom-left
+     0.5f, -0.5f, 0.0f,  scale, 0.0f,  0.0f,  0.0f,  1.0f,  // Bottom-right
+     0.5f,  0.5f, 0.0f,  scale, scale,  0.0f,  0.0f,  1.0f,  // Top-right
+    -0.5f,  0.5f, 0.0f,  0.0f, scale,  0.0f,  0.0f,  1.0f   // Top-left
+};
+
+// Correct indices for an index buffer (optional)
+unsigned int newPlatformIndices[] = {
+    0, 1, 2,  // First triangle
+    0, 2, 3   // Second triangle
+};
+
+
+glm::vec3 newPlatformPositions[] = {
+    //x   z       y
+    start_pos - glm::vec3(2.0f,2.00f,-1.0f),
+    start_pos - glm::vec3(2.0f,2.00f,-10.0f),
+    start_pos - glm::vec3(2.0f,2.00f,-20.0f),
+    start_pos - glm::vec3(2.0f,2.00f,-30.0f),
+    start_pos - glm::vec3(-10.0f,0.00f,-10.0f)
+};
+
+glm::vec3 newPlatformScales[] = {
+    glm::vec3(5.0f, 5.0f, 5.0f),
+    glm::vec3(5.0f, 5.0f, 5.0f),
+    glm::vec3(3.0f, 3.0f, 3.0f),
+    glm::vec3(4.0f, 4.0f, 4.0f),
+    glm::vec3(8.0f, 8.0f, 8.0f)
+};
+
+
+
+
 
 
 glm::vec3 pointLightPositions[] = {
@@ -268,10 +309,47 @@ int main()
         }
     }
 
+    //---new platfrom
+    // 1. Create Buffers
+    unsigned int VAOplatform, VBOplatform, EBOplatform;
+    glGenVertexArrays(1, &VAOplatform);
+    glGenBuffers(1, &VBOplatform);
+    glGenBuffers(1, &EBOplatform);  // Create an EBO
+
+    // 2. Bind VAO
+    glBindVertexArray(VAOplatform);
+
+    // 3. Bind and Fill VBO
+    glBindBuffer(GL_ARRAY_BUFFER, VBOplatform);
+    glBufferData(GL_ARRAY_BUFFER, sizeof(newPlatformVertices), newPlatformVertices, GL_STATIC_DRAW);
+
+    // 4. Bind and Fill EBO
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBOplatform);
+    glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(newPlatformIndices), newPlatformIndices, GL_STATIC_DRAW);
+
+    // 5. Set Vertex Attribute Pointers
+    // Position Attribute (3 floats)
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)0);
+    glEnableVertexAttribArray(0);
+
+    // Texture Coordinate Attribute (2 floats)
+    glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)(3 * sizeof(float)));
+    glEnableVertexAttribArray(1);
+
+    // Normal Attribute (3 floats)
+    glVertexAttribPointer(2, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)(5 * sizeof(float)));
+    glEnableVertexAttribArray(2);
+
+    // 6. Unbind VAO (EBO remains bound to VAO, so no need to unbind separately)
+    glBindVertexArray(0);
+
+    // 7. Unbind VBO (optional, not needed for VAO use)
+    glBindBuffer(GL_ARRAY_BUFFER, 0);
+
+    //---
 
 
-
-    //cube = plattform wo drauf man steht?
+    //cube = wand?
     unsigned int VBOPlane,VAOplane, VBOcube,VAOcube;
     glGenVertexArrays(1, &VAOplane);
     glGenBuffers(1, &VBOPlane);
@@ -337,10 +415,10 @@ int main()
 
     //---Texture for Platforms---
     unsigned int platformTexture;
-    platformTexture = loadTexture("src/resources/Textures/awesomeface.png");
+    platformTexture = loadTexture("src/resources/Textures/leaf.png");
 
     // uncomment this call to draw in wireframe polygons.
-    //glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+    // glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
     TextureShader.use();
     TextureShader.setInt("texture", 0);
 
@@ -438,11 +516,20 @@ int main()
         glActiveTexture(GL_TEXTURE0);
         glBindTexture(GL_TEXTURE_2D, platformTexture); // Or whichever texture you want
 
+        //make new plattform
+        for (unsigned int i = 0; i < NEW_NUM_PLATFORMS; i++) {
+            glm::vec3 quad_pos = newPlatformPositions[i];
+            glm::vec3 quad_scale = newPlatformScales[i];
+            drawPlatform(TextureShader, VAOplatform, projection, view, lightColor,quad_pos,quad_scale);
+        }
+
+
+
         for (unsigned int i = 0; i < NUM_PLATFORMS; i++) {
             glm::vec3 quad_pos = platformPositions[i];
             glm::vec3 quad_scale = platformScales[i];
 
-            makeQuad(TextureShader, VAOcube, projection, view, lightColor, quad_pos, quad_scale);
+            //makeQuad(TextureShader, VAOcube, projection, view, lightColor, quad_pos, quad_scale);
 
         }
         //skbox
@@ -558,9 +645,9 @@ void processInputPlayer(GLFWwindow* window)
         on_ground = true;
     }
 
-    for (unsigned int i = 0; i < NUM_PLATFORMS; i++) {
-        glm::vec3 quad_pos = platformPositions[i];
-        glm::vec3 quad_scale = platformScales[i];
+    for (unsigned int i = 0; i < NEW_NUM_PLATFORMS; i++) {
+        glm::vec3 quad_pos = newPlatformPositions[i];
+        glm::vec3 quad_scale = newPlatformScales[i];
 
         if ((pos.x > quad_pos.x - quad_scale.x / 2) && (pos.x < quad_pos.x + quad_scale.x / 2)
             && (pos.z > quad_pos.z - quad_scale.z / 2) && (pos.z < quad_pos.z + quad_scale.z / 2)
@@ -575,6 +662,8 @@ void processInputPlayer(GLFWwindow* window)
         }
 
     }
+
+
 
     camera.ProcessKeyboard(SPACE, deltaTime, vel_up);
 
@@ -693,8 +782,7 @@ void scroll_callback(GLFWwindow* window, double xoffset, double yoffset)
 {
     camera.ProcessMouseScroll(static_cast<float>(yoffset));
 }
-unsigned int loadTexture(char const* path)
-{
+unsigned int loadTexture(char const* path) {
     unsigned int textureID;
     glGenTextures(1, &textureID);
     int width, height, nrComponents;
@@ -715,7 +803,11 @@ unsigned int loadTexture(char const* path)
 
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
+
+
+
+        // glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 
         stbi_image_free(data);
@@ -771,6 +863,30 @@ void makeQuad(Shader lightShader, unsigned int VAOcube, glm::mat4 projection, gl
     lightShader.setMat4("model", model);
 
 
+
     glBindVertexArray(VAOcube);
     glDrawArrays(GL_TRIANGLES, 0, 36);
+}
+
+void drawPlatform(Shader textureShader, unsigned int VAO, glm::mat4 projection, glm::mat4 view, glm::vec3 lightColor, glm::vec3 pos, glm::vec3 scale) {
+    textureShader.use();
+    textureShader.setInt("platformTexture", 0);
+
+    glm::mat4 model = glm::mat4(1.0f);
+    model = glm::translate(model, pos);
+    model = glm::scale(model, scale); // Make it a smaller cube
+    model = glm::rotate(model, glm::radians(-90.0f), glm::vec3(1.0f, 0.0f, 0.0f)); //rotate the platform
+
+
+    textureShader.setMat4("projection", projection);
+    textureShader.setMat4("view", view);
+    textureShader.setVec3("lightColor", lightColor);
+    textureShader.setMat4("model", model);
+    textureShader.setVec2("texureScale", glm::vec2(1.0,1.0));
+
+
+    glBindVertexArray(VAO);
+    glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
+    glBindVertexArray(0);
+
 }
