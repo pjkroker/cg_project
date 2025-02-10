@@ -8,6 +8,7 @@
 
 #include <myHeaders/camera.h>
 #include <myHeaders/shader.h>
+#include <src/sphere.h>
 
 #define STB_IMAGE_IMPLEMENTATION
 #include "stb_image.h"
@@ -21,6 +22,8 @@
 void makeQuad(Shader lightShader, unsigned int VAOcube, glm::mat4 projection, glm::mat4 view, glm::vec3 lightColor, glm::vec3 pos, glm::vec3 scale);
 
 void drawPlatform(Shader textureShader, unsigned int VAO, glm::mat4 projection, glm::mat4 view, glm::vec3 lightColor, glm::vec3 pos, glm::vec3 scale);
+
+void drawSphere(Shader textureShader, glm::mat4 projection, glm::mat4 view, glm::vec3 lightColor, glm::vec3 pos, glm::vec3 scale);
 
 void framebuffer_size_callback(GLFWwindow* window, int width, int height);
 void mouse_callback(GLFWwindow* window, double xpos, double ypos);
@@ -146,7 +149,6 @@ float cubeVertices[] = {
 
 };
 
-
 const unsigned int NEW_NUM_PLATFORMS = 5;
 float scale = 1.0f;
 float newPlatformVertices[] = {
@@ -185,12 +187,13 @@ glm::vec3 newPlatformScales[] = {
 
 
 
-
+const unsigned int NUM_POINT_LIGHTS = 4;
 glm::vec3 pointLightPositions[] = {
     glm::vec3(-28.5253, 3.06318, 53.6281),
     glm::vec3(20.3f, 0.9f, 5.0f),
     glm::vec3(-6.26907, 3.13895, 25.4411),
-    glm::vec3(30.0f,  1.6f, 3.0f)
+    glm::vec3(30.0f,  1.6f, 3.0f),
+    start_pos - glm::vec3(-10.0f,-4.00f,-10.0f)
 };
 const unsigned int NUM_PLATFORMS = 5;
 glm::vec3 platformPositions[] = {
@@ -267,6 +270,7 @@ int main()
     Shader CubeMapShader("src/resources/shaders/cubeMap.shader");
     Shader TextureShader("src/resources/shaders/TextureShader.shader");
     Shader lightShader("src/resources/shaders/lightShader.shader");
+    Shader textureShader2("src/resources/shaders/textureShader2.shader");
    
     waterShader.use();
 
@@ -417,6 +421,10 @@ int main()
     unsigned int platformTexture;
     platformTexture = loadTexture("src/resources/Textures/leaf.png");
 
+    //---Texture for Sphere---
+    unsigned int sphereTexture;
+    sphereTexture = loadTexture("src/resources/Textures/BrushedIron02_1K_BaseColor.png");
+
     // uncomment this call to draw in wireframe polygons.
     // glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
     TextureShader.use();
@@ -489,7 +497,7 @@ int main()
         //Lights-----------------
         
         lightShader.use();
-        for (unsigned int i = 0; i < 4; i++)
+        for (unsigned int i = 0; i < NUM_POINT_LIGHTS; i++)
         {
             model = glm::mat4(1.0f); 
             model = glm::translate(model, pointLightPositions[i]);
@@ -514,7 +522,7 @@ int main()
         //Plattform, only the texture?
 
         glActiveTexture(GL_TEXTURE0);
-        glBindTexture(GL_TEXTURE_2D, platformTexture); // Or whichever texture you want
+        glBindTexture(GL_TEXTURE_2D, platformTexture);
 
         //make new plattform
         for (unsigned int i = 0; i < NEW_NUM_PLATFORMS; i++) {
@@ -522,6 +530,19 @@ int main()
             glm::vec3 quad_scale = newPlatformScales[i];
             drawPlatform(TextureShader, VAOplatform, projection, view, lightColor,quad_pos,quad_scale);
         }
+
+        //--Sphere---
+        // glActiveTexture(GL_TEXTURE0);
+        // glBindTexture(GL_TEXTURE_2D, sphereTexture);
+        //
+        // for (unsigned int i = 0; i < 1; i++) {
+        //     drawSphere(TextureShader, projection, view, glm::vec3(1.0f, 1.0f, 1.0f), start_pos - glm::vec3(-10.0f,-3.00f,-14.0f), glm::vec3(2.0f, 2.0f, 2.0f));
+        // }
+
+
+
+
+
 
 
 
@@ -885,8 +906,44 @@ void drawPlatform(Shader textureShader, unsigned int VAO, glm::mat4 projection, 
     textureShader.setVec2("texureScale", glm::vec2(1.0,1.0));
 
 
+
+    // Directional light
+    textureShader.setVec3("dirLight.direction", glm::vec3(-0.2f, -1.0f, -0.3f));
+    textureShader.setVec3("dirLight.ambient", glm::vec3(0.2f, 0.2f, 0.2f));
+    textureShader.setVec3("dirLight.diffuse", glm::vec3(0.5f, 0.5f, 0.5f));
+    textureShader.setVec3("dirLight.specular", glm::vec3(1.0f, 1.0f, 1.0f));
+
+    // Material properties
+    textureShader.setVec3("material.diffuse", glm::vec3(1.0f, 1.0f, 1.0f));
+    textureShader.setVec3("material.specular", glm::vec3(0.5f, 0.5f, 0.5f)); // Adjust for stronger reflections
+    textureShader.setFloat("material.shininess", 64.0f);
+
+
+
     glBindVertexArray(VAO);
     glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
     glBindVertexArray(0);
 
+}
+
+void drawSphere(Shader textureShader, glm::mat4 projection, glm::mat4 view, glm::vec3 lightColor, glm::vec3 pos, glm::vec3 scale) {
+    textureShader.use();
+    textureShader.setInt("sphereTexture", 0);
+
+    // Set transformation matrices
+    glm::mat4 model = glm::mat4(1.0f);
+    model = glm::translate(model, pos);
+    model = glm::scale(model, scale); // Make it a smaller cube
+    model = glm::rotate(model, glm::radians(-90.0f), glm::vec3(1.0f, 0.0f, 0.0f)); //rotate the platform
+    textureShader.setMat4("model", model);
+    textureShader.setMat4("view", view);
+    textureShader.setMat4("projection", projection);
+    textureShader.setVec2("texureScale", glm::vec2(1.0,1.0));
+
+
+    // Set light
+    textureShader.setVec3("dirLight.ambient", 0.25f, 0.25f, 0.25f);
+    textureShader.setVec3("lightColor", lightColor);
+
+    renderSphere();
 }
